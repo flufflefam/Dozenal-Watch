@@ -32,9 +32,16 @@
 #include "nanosec_face.h"
 #include "watch_utility.h"
 
-//extern nanosec_state_t nanosec_state;
-
 static const char dozenal_digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'H', 'E' };
+
+// Table at the end of: https://clocks.dozenal.ca/pdf/watch.pdf
+static uint32_t dig1_sec = 2 * 60 * 60;
+static uint32_t dig2_sec = 10 * 60;
+static uint32_t dig3_sec = 50;
+static double dig4_sec = 4 + 1/6;
+//static double dig5_sec = 25 / 72;
+
+static uint8_t dozenal_tick_frequency = 16;
 
 void dozenal_face_setup(movement_settings_t *settings, uint8_t watch_face_index, void ** context_ptr) {
     (void) settings;
@@ -52,67 +59,34 @@ void dozenal_face_activate(movement_settings_t *settings, void *context) {
     dozenal_state_t *state = (dozenal_state_t *)context;
 
     // Handle any tasks related to your watch face coming on screen.
-    movement_request_tick_frequency(64);
+    movement_request_tick_frequency(dozenal_tick_frequency);
 }
 
 bool dozenal_face_loop(movement_event_t event, movement_settings_t *settings, void *context) {
     dozenal_state_t *state = (dozenal_state_t *)context;
-
     watch_date_time date_time;
-    char buf[16];
+    char buf[11];
     uint32_t tsec;
-    double tsubsec;
+    double tsub;
+    uint8_t dig1, dig2, dig3, dig4;
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
         case EVENT_TICK:
             date_time = watch_rtc_get_date_time();
-            //watch_utility_date_time_to_unix_time(date_time, movement_timezone_offsets[settings->bit.time_zone] * 60);
-            //timestamp = //watch_utility_date_time_to_unix_time(date_time, movement_timezone_offsets[settings->bit.time_zone] * 60);
-            //timestamp = timestamp % (24 * 60 * 60);
-
             tsec = (((uint32_t)date_time.unit.hour * 60) + (uint32_t)date_time.unit.minute) * 60 + (uint32_t)date_time.unit.second;
-            uint8_t dig1, dig2, dig3, dig4, dig5;
-
-            dig1 = tsec / (2 * 60 * 60);
-            tsec = tsec % (2 * 60 * 60);
-            dig2 = tsec / (10 * 60);
-            tsec = tsec % (10 * 60);
-            dig3 = tsec / 50;
-            tsec = tsec % 50;
-
-            tsubsec = (double)tsec + (double)event.subsecond / (double)64;
-            dig4    = tsubsec / (4 + 1/(double)6);
-            tsubsec = fmod(tsubsec, (double)(4 + 1/(double)6));
-            if (tsubsec < 0)
-                tsubsec += (double)(4 + 1/(double)6);
-            dig5    = tsubsec / ((double)25/(double)72);
-
-            watch_display_character(dozenal_digits[dig1], 5);
-            watch_display_character(dozenal_digits[dig2], 6);
-            watch_display_character(dozenal_digits[dig3], 7);
-            watch_display_character(dozenal_digits[(uint8_t)dig4], 8);
-            watch_display_character(' ', 9);
-            //watch_display_character('5', 5);
-            //watch_display_character('6', 6);
-            //watch_display_character('7', 7);
-            //watch_display_character('8', 8);
-            //watch_display_character('9', 9);
-            //break;
-            // https://github.com/joeycastillo/Sensor-Watch/blob/main/movement/watch_faces/clock/mars_time_face.c
-            // If needed, update your display here.
-            // on activate and tick
-            //date_time = watch_rtc_get_date_time();
-            //uint8_t dig1, dig2, dig3, dig4, dig5;
-            //dig1 = date_time.unit.hour / 2;
-            // 
-            //centihours = (( date_time.unit.minute * 60 + date_time.unit.second ) * 100 ) / 3600;  // Integer division, fractions get dropped, no need for abs() (bonus)
-            //decimal_seconds = ( date_time.unit.minute * 60 + date_time.unit.second ) % 36 ;
-            //sprintf( buf, "dT%2d%02d%02d%2d", date_time.unit.day, date_time.unit.hour, centihours, decimal_seconds );
-            //watch_display_string(buf, 0);  // display calculated time
-            //watch_display_string("    EeBbaa", 0);
+            dig1 = tsec / dig1_sec;
+            tsec = tsec % dig1_sec;
+            dig2 = tsec / dig2_sec;
+            tsec = tsec % dig2_sec;
+            dig3 = tsec / dig3_sec;
+            tsec = tsec % dig3_sec;
+            // leftover subseconds
+            tsub = (double)tsec + (double)event.subsecond / (double)dozenal_tick_frequency;
+            dig4 = tsub / dig4_sec;
+            sprintf(buf, "%c%c%c%c ", dozenal_digits[dig1], dozenal_digits[dig2], dozenal_digits[dig3], dozenal_digits[dig4]);
+            watch_display_string(buf, 5);
             break;
-
         case EVENT_LIGHT_BUTTON_UP:
             // You can use the Light button for your own purposes. Note that by default, Movement will also
             // illuminate the LED in response to EVENT_LIGHT_BUTTON_DOWN; to suppress that behavior, add an
