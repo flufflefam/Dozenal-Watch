@@ -38,9 +38,10 @@ static const char dozenal_digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '
 static uint32_t dig1_sec = 2 * 60 * 60;
 static uint32_t dig2_sec = 10 * 60;
 static uint32_t dig3_sec = 50;
-static double dig4_sec = 4 + 1/6;
+static double dig4_sec = 4 + 1/(double)6;
 //static double dig5_sec = 25 / 72;
 
+// Cannot reliably process mode button presses at 64
 static uint8_t dozenal_tick_frequency = 16;
 
 void dozenal_face_setup(movement_settings_t *settings, uint8_t watch_face_index, void ** context_ptr) {
@@ -98,7 +99,7 @@ bool dozenal_face_loop(movement_event_t event, movement_settings_t *settings, vo
         case EVENT_TIMEOUT:
             // Your watch face will receive this event after a period of inactivity. If it makes sense to resign,
             // you may uncomment this line to move back to the first watch face in the list:
-            // movement_move_to_face(0);
+            movement_move_to_face(0);
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             // If you did not resign in EVENT_TIMEOUT, you can use this event to update the display once a minute.

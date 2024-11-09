@@ -29,14 +29,15 @@
 
 const watch_face_t watch_faces[] = {
     simple_clock_face,
-    world_clock_face,
-    sunrise_sunset_face,
-    moon_phase_face,
-    stopwatch_face,
-    preferences_face,
+    dozenal_face,
+    //world_clock_face,
+    //sunrise_sunset_face,
+    //moon_phase_face,
+    //stopwatch_face,
+    //preferences_face,
     set_time_face,
-    thermistor_readout_face,
-    voltage_face
+    //thermistor_readout_face,
+    //voltage_face
 };
 
 #define MOVEMENT_NUM_FACES (sizeof(watch_faces) / sizeof(watch_face_t))
@@ -47,7 +48,8 @@ const watch_face_t watch_faces[] = {
  * Some folks also like to use this to hide the preferences and time set faces from the normal rotation.
  * If you don't want any faces to be excluded, set this to 0 and a long Mode press will have no effect.
  */
-#define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_NUM_FACES - 2) // or (0)
+//#define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_NUM_FACES - 2) // or (0)
+#define MOVEMENT_SECONDARY_FACE_INDEX 2
 
 /* Custom hourly chime tune. Check movement_custom_signal_tunes.h for options. */
 #define SIGNAL_TUNE_DEFAULT
@@ -62,7 +64,7 @@ const watch_face_t watch_faces[] = {
 #define MOVEMENT_DEFAULT_24H_MODE false
 
 /* Enable or disable the sound on mode button press */
-#define MOVEMENT_DEFAULT_BUTTON_SOUND true
+#define MOVEMENT_DEFAULT_BUTTON_SOUND false
 
 /* Set the timeout before switching back to the main watch face
  * Valid values are:
@@ -71,7 +73,7 @@ const watch_face_t watch_faces[] = {
  * 2: 5 minutes
  * 3: 30 minutes
  */
-#define MOVEMENT_DEFAULT_TIMEOUT_INTERVAL 0
+#define MOVEMENT_DEFAULT_TIMEOUT_INTERVAL 3
 
 /* Set the timeout before switching to low energy mode
  * Valid values are:
@@ -93,6 +95,6 @@ const watch_face_t watch_faces[] = {
  * 2: 3 seconds
  * 3: 5 seconds
  */
-#define MOVEMENT_DEFAULT_LED_DURATION 1
+#define MOVEMENT_DEFAULT_LED_DURATION 3
 
 #endif // MOVEMENT_CONFIG_H_
