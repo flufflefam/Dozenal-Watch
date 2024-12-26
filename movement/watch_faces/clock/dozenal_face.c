@@ -69,24 +69,38 @@ bool dozenal_face_loop(movement_event_t event, movement_settings_t *settings, vo
     char buf[11];
     uint32_t tsec;
     double tsub;
-    uint8_t dig1, dig2, dig3, dig4;
+    uint8_t dig0 = 0, dig1, dig2, dig3, dig4;
+    uint8_t semidiurnal_adj = 1;
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
         case EVENT_TICK:
+            if (state->current_display == DOZENAL_SEMIDIURNAL) {
+                semidiurnal_adj = 2;
+            }
             date_time = watch_rtc_get_date_time();
             tsec = (((uint32_t)date_time.unit.hour * 60) + (uint32_t)date_time.unit.minute) * 60 + (uint32_t)date_time.unit.second;
-            dig1 = tsec / dig1_sec;
-            tsec = tsec % dig1_sec;
-            dig2 = tsec / dig2_sec;
-            tsec = tsec % dig2_sec;
-            dig3 = tsec / dig3_sec;
-            tsec = tsec % dig3_sec;
+            dig1 = tsec / (dig1_sec / semidiurnal_adj);
+            tsec = tsec % (dig1_sec / semidiurnal_adj);
+            if (dig1 > 11) {
+                dig0 = 1;
+                dig1 %= 12;
+            }
+            dig0 = state->current_display;
+            dig2 = tsec / (dig2_sec / semidiurnal_adj);
+            tsec = tsec % (dig2_sec / semidiurnal_adj);
+            dig3 = tsec / (dig3_sec / semidiurnal_adj);
+            tsec = tsec % (dig3_sec / semidiurnal_adj);
             // leftover subseconds
             tsub = (double)tsec + (double)event.subsecond / (double)dozenal_tick_frequency;
-            dig4 = tsub / dig4_sec;
-            sprintf(buf, "%c%c%c%c ", dozenal_digits[dig1], dozenal_digits[dig2], dozenal_digits[dig3], dozenal_digits[dig4]);
-            watch_display_string(buf, 5);
+            dig4 = tsub / (dig4_sec / semidiurnal_adj);
+            //sprintf(buf, "%d ", dig1);
+            if (state->current_display == DOZENAL_DIURNAL) {
+                sprintf(buf, " %c%c%c%c ", dozenal_digits[dig1], dozenal_digits[dig2], dozenal_digits[dig3], dozenal_digits[dig4]);
+            } else if (state->current_display == DOZENAL_SEMIDIURNAL) {
+                sprintf(buf, "%c%c%c%c%c ", dozenal_digits[dig0], dozenal_digits[dig1], dozenal_digits[dig2], dozenal_digits[dig3], dozenal_digits[dig4]);
+            }
+            watch_display_string(buf, 4);
             break;
         case EVENT_LIGHT_BUTTON_UP:
             // You can use the Light button for your own purposes. Note that by default, Movement will also
@@ -95,6 +109,7 @@ bool dozenal_face_loop(movement_event_t event, movement_settings_t *settings, vo
             break;
         case EVENT_ALARM_BUTTON_UP:
             // Just in case you have need for another button.
+            state->current_display = (state->current_display + 1) % DOZENAL_NUM_MODES;
             break;
         case EVENT_TIMEOUT:
             // Your watch face will receive this event after a period of inactivity. If it makes sense to resign,
