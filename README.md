@@ -5,4 +5,4 @@ A work-in-progress [dozenal timekeeping adaptation](https://clocks.dozenal.ca/) 
 ## [Unreleased]
 ### Added
 - Added semidiurnal time; alarm button cycles between diurnal and semidiurnal mode
-- Current firmware now accessible online: https://flufflefam.github.io/dozenal/
+- Added [online emulator with latest firmware](https://flufflefam.github.io/dozenal/watch.html)
